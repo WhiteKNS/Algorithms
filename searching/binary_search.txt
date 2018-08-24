@@ -1,0 +1,54 @@
+#include "stdafx.h"
+#include <iostream>
+
+typedef unsigned int u32;
+
+void bubble_sort(int arr[], const u32 size)
+{
+	for(u32 i = 0; i < size; ++i) {
+		bool swapped  = false;
+		for (u32 j = 0; j < size - i - 1; ++j) {
+			if (arr[j+1] < arr[j]) {
+				swap(arr, j+1, j);
+				swapped = true;
+			}
+		}
+
+		if (!swapped)
+			break;
+	}
+}
+
+int binary_search(const int arr[], const int size, const int value) {
+	int mid = size>>1;
+	while(mid >=0 && mid < size) {
+		if (arr[mid] > value) {
+			if (!mid) break;
+			mid = mid>>1;
+		} else if (arr[mid] < value) {
+			int plus_mid = mid>>1;
+			mid = mid + plus_mid + 1;
+		} else
+			return mid;
+	}
+
+	return -1;
+}
+
+int main()
+{
+	int sorting_array[] = {2, 3, 1, 5, 6, 4, 0};
+	u32 array_size	= sizeof (sorting_array) / sizeof (sorting_array[0]);
+	//bubble_sort(sorting_array, array_size);
+
+	int result = binary_search(sorting_array, array_size, 2);
+
+	if (result == -1)
+		std::cout << "nothing was found" << std::endl;
+	else
+		std::cout << result << std::endl;
+
+	delete[] sorting_array;
+
+    return 0;
+}

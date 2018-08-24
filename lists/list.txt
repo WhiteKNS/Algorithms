@@ -1,0 +1,286 @@
+// Lists.cpp : Defines the entry point for the console application.
+//
+
+#include "stdafx.h"
+#include <iostream>
+
+typedef unsigned int u32;
+
+template <typename T>
+struct node {
+	T data;
+	node *next;
+};
+
+template <typename T>
+node <T> * make_list(const u32 count)
+{
+	node <T> *list = nullptr;
+
+	for (int i = count - 1; i >= 0; --i)
+		list = new node<T>{ (T)i, list };
+
+	return list;
+}
+
+template <typename T>
+void delete_list(node <T> *list)
+{
+	while (list) {
+		node <T> *cashe_list = list->next;
+		delete list;
+		list = cashe_list;
+	}
+}
+
+template <typename T>
+void print_list(node <T> *list)
+{
+	std::cout << "start printing" << std::endl;
+
+	if (list == nullptr)
+		std::cout << "list is empty";
+
+	while (list) {
+		std::cout << list->data << " ";
+		list = list->next;
+	}
+
+	std::cout << std::endl <<"end printing" <<std::endl << std::endl;
+}
+
+template <typename T>
+bool exist_next(node <T> *list, const T &search_data)
+{
+	while (list) {
+		if (list->data == search_data)
+			return list->next;
+		else
+			list = list->next;
+	}
+
+	return false;
+}
+
+template <typename T>
+bool exist_prev(node <T> *list, const T &search_data)
+{
+	node <T> *prev = nullptr;
+	while (list) {
+		if (list->data == search_data) {
+			return prev;
+		} else {
+			prev = list;
+			list = list->next;
+		}
+	}
+
+	return false;
+}
+
+template <typename T>
+node<T> *replace(node <T> *list, const T &old_value, const T &new_value)
+{
+	node <T> *cashe_list = list;
+	while (list) {
+		if (list->data == old_value) {
+			list->data = new_value;
+		}
+		list = list->next;
+	}
+
+	return cashe_list;
+}
+
+template <typename T>
+node<T> *delete_value(node<T> *list, const T &value)
+{
+	node <T> *prev = nullptr;
+	node <T> *cur = list;
+
+	while (list) {
+		if (list->data == value) {
+			node <T> *cashe = list->next;
+			if (!prev)
+				cur = cashe;
+			else
+				prev->next = list->next;
+
+			delete list;
+			list = cashe;
+			continue;
+		}
+		prev = list;
+		list = list->next;
+	}
+
+	return cur;
+}
+
+template <typename T>
+node <T> *insert_next(node <T> *list, const T &search, const T &insert_value)
+{
+	node <T> *cur = list;
+
+	while (list) {
+		if (list->data == search) {
+			node <T> *new_node = new node <T>{ insert_value, list->next };		
+			list->next = new_node;
+		}
+		
+		list = list->next;
+	}
+
+	return cur;
+}
+
+template <typename T>
+node <T> *insert_next_by_index(node <T> *list, const u32 index, const T &insert_value)
+{
+	node <T> *cur = list;
+	u32 idx = 0;
+
+	while (list) {
+		if (idx == index) {
+			node <T> *new_node = new node<T>{insert_value, list->next};
+			list->next = new_node;
+			break;
+		}
+		list = list->next;
+		++idx;
+	}
+
+	return cur;
+}
+
+template <typename T>
+node <T> *insert_previous(node <T> *list, const T &search_value, const T &insert_value)
+{
+	node <T> *prev = nullptr;
+	node <T> *cur = list;
+
+	while (list) {
+		if (list->data == search_value) {
+			node <T> *new_node = new node<T>{ insert_value, list};
+
+			if (prev)
+				prev->next = new_node;
+			else
+				cur = new_node;
+		}
+		prev = list;
+		list = list->next;
+	}
+
+	return cur;
+}
+
+template <typename T>
+node <T> *insert_previous_by_index(node <T> *list, const u32 index, const T &insert_value)
+{
+	node <T> *prev = nullptr;
+	node <T> *cur = list;
+	u32 idx = 0;
+
+	while (list) {
+		if (index == idx) {
+			node <T> *new_node = new node<T>{ insert_value, list};
+			if (prev)
+				prev->next = new_node;
+			else
+				cur = new_node;
+
+			break;
+		}
+		prev = list;
+		list = list->next;
+		++idx;
+	}
+
+	return cur;
+}
+
+template <typename T>
+node <T> *reverse_list(node<T> *list)
+{
+	node <T> *prev = nullptr;
+
+	while (list) {
+		node <T> *next = list->next;
+		list->next = prev;
+		prev = list;
+
+		list = next;
+	}
+
+	return prev;
+}
+
+int main()
+{
+	const u32 count = 9;
+	std::cout << "make list" << std::endl;
+	node <int> *list = make_list<int>(count);
+	print_list(list);
+
+	std::cout << "check if the previous value exists" << std::endl;
+	bool exist = exist_prev(list, 0);
+	std::cout << exist << std::endl;
+
+	std::cout << "check if the previous value exists" << std::endl;
+	exist = exist_prev(list, 8);
+	std::cout << exist << std::endl;
+
+	std::cout << "check if the next value exists" << std::endl;
+	exist = exist_next(list, 8);
+	std::cout << exist << std::endl;
+
+	std::cout << "check if the next value exists" << std::endl;
+	exist = exist_next(list, 0);
+	std::cout << exist << std::endl;
+
+	std::cout << "replace value" << std::endl;
+	list = replace(list, 8, 18);
+	print_list(list);
+
+	std::cout << "insert next by value" << std::endl;
+	list = insert_next(list, 0, 11);
+	print_list(list);
+
+	std::cout << "insert next by value" << std::endl;
+	list = insert_next(list, 18, 12);
+	print_list(list);
+
+	std::cout << "insert next by index" << std::endl;
+	list = insert_next_by_index(list, 6, 13);
+	print_list(list);
+
+	std::cout << "insert previous by value" << std::endl;
+	list = insert_previous(list, 0, 12);
+	print_list(list);
+
+	std::cout << "insert previous by value" << std::endl;
+	list = insert_previous(list, 12, 15);
+	print_list(list);
+
+	std::cout << "insert previous by index" << std::endl;
+	list = insert_previous_by_index(list, 0, 16);
+	print_list(list);
+
+	std::cout << "reverse list" << std::endl;
+	list = reverse_list(list);
+	print_list(list);
+
+	std::cout << "delete value" << std::endl;
+	list = delete_value(list, 0);
+	print_list(list);
+
+	std::cout << "clear list" << std::endl;
+	delete_list(list);
+	list = nullptr;
+	print_list(list);
+
+	system("pause");
+    return 0;
+}
+

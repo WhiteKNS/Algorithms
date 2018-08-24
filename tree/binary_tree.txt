@@ -1,0 +1,662 @@
+// BinaryTree.cpp : Defines the entry point for the console application.
+//
+
+#include "stdafx.h"
+#include <iostream>
+#include <string>
+#include <assert.h>
+#include <stack>
+#include <vector>
+#include <fstream>
+
+typedef unsigned int u32;
+typedef int s32;
+
+#define MAX_DEPTH 10
+
+template<typename T>
+struct node {
+	T data;
+	node *right;
+	node *left;
+};
+
+template<typename T>
+class binary_tree {
+	node<T> *root;
+	u32 nodes_count;
+	int levels_counter[MAX_DEPTH];
+	u32 levels_num;
+
+	int sum_on_levels[MAX_DEPTH];
+public:
+	binary_tree() : root(nullptr), nodes_count(0), levels_num(0) {
+		for(u32 i = 0; i < MAX_DEPTH; ++i)
+			sum_on_levels[i] = 0;
+	}
+
+	~binary_tree() {
+		delete_tree(&root);
+	}
+
+private:
+	void create_node(node<T> **n, const T &data) {
+		*n = new node<T> {data, nullptr, nullptr};
+	}
+
+	void add_node(node<T> **parent_node, const T &data) {
+		node<T> *n = *parent_node;
+
+		if (!root) {
+			create_root(data);
+		} else {
+			if (data < n->data) {
+				if (n->left)
+					add_node(&n->left, data);
+				else
+					create_node(&n->left, data);
+			} else if (data > n->data) {
+				if (n->right)
+					add_node(&n->right, data);
+				else
+					create_node(&n->right, data);
+			} else {
+				return;
+			}
+		}
+	}
+
+	void print_node(node<T> **n, const std::string &str) {
+		node<T> *cur_node = *n;
+
+		if (!cur_node) return;
+
+		print_node(&cur_node->left, "left");
+		print_node(&cur_node->right, "right");
+
+		std::cout << str << " " << cur_node->data << " ";
+	}
+
+	void delete_tree(node<T> **n) {
+		node<T> *cur_node = *n;
+
+		if (!cur_node) return;
+
+		delete_tree(&cur_node->right);
+		delete_tree(&cur_node->left);
+
+		delete cur_node;
+		cur_node = nullptr;
+	}
+
+	void pr_incr(node<T> **child_node) {
+		node<T> *cur_node = *child_node;
+
+		if (!cur_node) return;
+
+		pr_incr(&cur_node->left);
+
+		std::cout << cur_node->data << std::endl;
+
+		pr_incr(&cur_node->right);
+	}
+
+	void pr_dec(node<T> *parent) {
+		if(!parent) return;
+
+		pr_dec(parent->right);
+		std::cout << parent->data << std::endl;
+
+		pr_dec(parent->left);
+	}
+
+	void count_nodes_on_level(node<T> **n, u32 level = 0, const std::string &str = "") {
+		node<T> *cur_node = *n;
+
+		if (!cur_node) return;
+
+		if (nodes_count < level)
+			++nodes_count;
+
+		levels_counter[level] += 1;
+
+		count_nodes_on_level(&cur_node->left, level + 1, "left");
+		count_nodes_on_level(&cur_node->right, level + 1, "right");
+	}
+
+	
+	void find_min_and_double_value(node<T> *parent) {
+		if (!parent) return;
+
+		if(parent->left)
+			find_min_and_double_value(parent->left);
+		else
+			parent->data /= 2;
+	}
+
+	void find_min_and_double_value() {
+		find_min_and_double_value(root);
+	}
+
+	void find_max_and_double_value(node<T> *parent) {
+		if(!parent) return;
+
+		if(parent->right)
+			find_max_and_double_value(parent->right);
+		else
+			parent->data *= 2;
+	}
+
+	void find_max_and_double_value() {
+		find_max_and_double_value(root);
+	}
+
+	//bool is_search_leaf(node<T> *parent) {
+		//if(parent && parent->left && parent->left->data > parent->data)
+		//	return false;
+		//
+		//if(parent && parent->right && parent->right->data < parent->data)
+		//	return false;
+		//
+		//return true;
+	
+
+	bool is_search_tree(node<T> *parent, node<T> *&prev) {
+		if(!parent) return true;
+
+		if(!is_search_tree(parent->left, prev)) return false;
+
+		if(prev && parent->data <= prev->data) return false;
+
+		prev = parent;
+
+		return is_search_tree(parent->right, prev);
+	}
+
+	bool is_search_tree_mirror(node<T> *parent, node<T> *&prev) {
+		if(!parent) return true;
+
+		if(!is_search_tree_mirror(parent->right, prev))
+			return false;
+
+		if(prev && parent->data <= prev->data)
+			return false;
+
+		prev = parent;
+
+		return is_search_tree_mirror(parent->left, prev);
+	}
+
+	bool is_search_tree(node<T> *parent) {
+		if(!parent) return true;
+
+		node<T> *prev = nullptr;
+		return is_search_tree(root, prev);
+
+
+		//if(!is_search_leaf(parent)) return false;
+		//
+		//return is_search_tree(parent->left) && is_search_tree(parent->right);
+	}
+
+	bool is_search_tree_mirror(node<T> *parent) {
+		if(!parent) return true;
+
+		node<T> *prev = nullptr;
+		return is_search_tree_mirror(root, prev);
+	}
+
+	void print_all_leafs(node<T> *parent) {
+		if(!parent) return;
+
+		std::cout << "value " << parent->data << " " << " left " << (parent->left ? std::to_string(parent->left->data) : "null") << " right " << (parent->right ? std::to_string(parent->right->data) : "null") << std::endl;
+
+		print_all_leafs(parent->left);
+		print_all_leafs(parent->right);
+	}
+
+	void find_level_with_max_sum(node<T> *parent, u32 level = 0) {
+		if(!parent) return;
+			
+		if(levels_num < level)
+			levels_num = level;
+		
+		sum_on_levels[level] += parent->data;
+
+		find_level_with_max_sum(parent->left, level + 1);
+		find_level_with_max_sum(parent->right, level + 1);
+	}
+
+	void find_data_level(node<T> *parent, const T &data, u32 level = 0, u32 &path = u32(-1)) {
+		if(!parent) return;
+
+		if(parent->data == data)
+			path = level;
+
+		find_data_level(parent->left, data, level + 1, path);
+		find_data_level(parent->right, data, level + 1, path);
+	}
+
+	const void change_datas_in_left_subtrees(node<T> *parent, const T &data) {
+		if(!parent) return;
+
+		parent->data += 100;
+		change_datas_in_left_subtrees(parent->right, data);
+		change_datas_in_left_subtrees(parent->left, data);
+	}
+
+	const void add_parent(node<T> *parent, const T &who,const T &father, const T &mother) {
+		if(!parent) return;
+
+		if(!parent->left && !parent->right && parent->data == who) {
+			assert(!parent->left && !parent->right);
+			parent->left = new node<T>{father, nullptr, nullptr};
+			parent->right = new node<T>{mother, nullptr, nullptr};
+		}
+
+		add_parent(parent->left, who, father, mother);
+		add_parent(parent->right, who, father, mother);
+	}
+
+	std::string mother_name = "mother";
+	std::string father_name = "father";
+	std::string grand = "grand";
+
+	void print_all_mothers(node<T> *parent, u32 level = 0) {
+		if(!parent) return;
+
+		std::string print_name = "";
+		for(u32 i = 0; i < level; ++i) {
+			print_name += grand;
+		}
+		print_name += mother_name;
+
+		std::cout << print_name << " " << parent->data << std::endl;
+		print_all_mothers(parent->right, level + 1);
+	}
+
+	void print_all_fathers(node<T> *parent, u32 level = 0, bool need_print = false) {
+		if(!parent) return;
+
+		if(need_print) {
+			std::string print_name = "";
+			for(u32 i = 0; i < level; ++i) {
+				print_name += grand;
+			}
+			print_name += father_name;
+
+			std::cout << print_name << " " << parent->data << std::endl;
+		}
+
+		print_all_fathers(parent->left, level + 1, true);
+		print_all_fathers(parent->right, level + 1, false);
+	}
+
+	void print_incrementingly(node<T> *parent) {
+		if(!parent) return;
+
+		std::stack<node<T>*> st;
+		//st.push(root->data);
+
+		node<T> *cur = root;
+
+		while(true) {
+			while(cur) {
+				st.push(cur);
+				cur = cur->left;
+			}
+
+			if (st.empty()) break;
+			node<T> *pop = st.top();
+
+			std::cout << pop->data << " ";
+			st.pop();
+
+			cur = pop->right;
+		}
+
+		std::cout << std::endl;
+	}
+
+	node<T> *next_min_node(node<T> *parent) {
+		return parent->left ? parent->left : parent;
+	}
+
+	void delete_node(node<T> **parent, const T &data) {
+		node<T> *cur_parent = *parent;
+		if(!cur_parent) return;
+
+		if (cur_parent->data < data) {
+			delete_node(&cur_parent->right, data);
+		} else if(cur_parent->data > data) {
+			delete_node(&cur_parent->left, data);
+		} else {
+			if (!cur_parent->left) {
+				node<T> *cashe = cur_parent->right;
+				delete cur_parent;
+				cur_parent = cashe;
+			} else if(!cur_parent->right) {
+				node<T> *cashe = cur_parent->left;
+				delete cur_parent;
+				cur_parent = cashe;
+			} else {
+				node<T> *next_min = next_min_node(cur_parent);
+				cur_parent->data = next_min->data;
+				delete_node(&cur_parent->left, cur_parent->data);
+			}
+		}
+
+		*parent = cur_parent;
+	}
+
+public:
+	node<T> *get_root () { return root; }
+
+	void create_root(const T &data) {
+		assert(!root);
+
+		create_node(&root, data);
+	}
+
+	void create_tree(const u32 size) {
+		u32 idx = rand()% 50 + 1;
+		create_root((T)25);
+
+		for (u32 i = 0; i < size; ++i) {
+			idx = rand()% 50 + 1;
+			add_node(&root, (T)idx);
+		}
+	}
+
+	void create_tree() {
+		std::cout << "print number of values" << std::endl;
+
+		u32 size = 0;
+		std::cin >> size;
+
+		T *arr = new T[size];
+
+		std::cout << "print values" << std::endl;
+
+		for (u32 i = 0; i < size; ++i) {
+			std::cin >> arr[i];
+		}
+
+		create_root(arr[0]);
+
+		for (u32 i = 1; i < size; ++i)
+			add_node(&root, arr[i]);
+	}
+
+	void print_tree() {
+		print_node(&root, "root");
+		std::cout << std::endl;
+	}
+
+	void print_tree_increasingly() {
+		std::cout << "print increasingly" << std::endl;
+		pr_incr(&root);
+		std::cout << std::endl;
+	}
+
+	void print_tree_decreasingly() {
+		std::cout << "print decreasingly" << std::endl;
+		pr_dec(root);
+		std::cout << std::endl;
+	}
+
+	void add_node(const T &data) {
+		add_node(&root, data);
+	}
+
+	void count_nodes_on_level() {
+		count_nodes_on_level(&root);
+
+		for(u32 i = 0; i <= nodes_count; ++i)
+			std::cout << "level " << i << " contains " <<levels_counter[i] << " nodes " << std::endl;
+
+			std::cout << std::endl;
+	}
+
+	void double_max_double_min() {
+		find_min_and_double_value();
+		find_max_and_double_value();
+	}
+
+	bool is_search_tree() {
+		return is_search_tree(root) || is_search_tree_mirror(root);
+	}
+
+	void print_all_leafs() {
+		print_all_leafs(root);
+	}
+
+	void find_level_with_max_sum() {
+		find_level_with_max_sum(root);
+
+		T max_level = 0;
+
+		for(u32 i = 0; i <= levels_num; ++i) {
+			if(sum_on_levels[i] > sum_on_levels[max_level])
+				max_level = i;
+
+			std::cout << "sum on level " << i << " is " << sum_on_levels[i] << " ";
+		}
+
+		std::cout << "the max sum value is on level " << max_level << std::endl;
+	}
+
+	const u32 find_data_level(const T &data) {
+		u32 path = u32(-1);
+		find_data_level(root, data, 0, path);
+		return path;
+	}
+
+	const void change_datas_in_left_subtrees(const T &data = 100) {
+		change_datas_in_left_subtrees(root ? root->left : nullptr, data);
+	}
+
+	const node<T> *add_root(const T &data) {
+		assert(!root);
+
+		root = new node<T> {data, nullptr, nullptr};
+		return root;
+	}
+
+	void add_parent(const T &who, const T &father, const T &mother) {
+		assert(root);
+		
+		add_parent(root, who, father, mother);
+	}
+
+	void print_all_mothers() {
+		print_all_mothers(root->right);
+	}
+
+	void print_all_fathers() {
+		print_all_fathers(root);
+	}
+
+	void print_incrementingly() {
+		std::cout << "print incrementingly " << std::endl;
+		print_incrementingly(root);
+	}
+
+	void delete_node(const T &data) {
+		delete_node(&root, data);
+	}
+
+};
+
+template<typename T>
+class perfectly_balanced_tree {
+	node<T> *root;
+	std::vector<T> datas;
+	u32 index;
+
+	void create_node(node<T> **new_node, const T &data) {
+		
+		*new_node = new node<T> {data, nullptr, nullptr};
+	}
+
+	void create_tree(node<T> **parent, const s32 size) {
+		if(size <= 0) return;
+		node<T> *cur_node = *parent;
+
+		s32 middle_left = size>>1;
+		s32 middle_right = size - middle_left - 1;
+
+		T data = datas[index++];
+		create_node(&cur_node, data);
+
+		create_tree(&cur_node->left, middle_left);
+		create_tree(&cur_node->right, middle_right);
+
+		*parent = cur_node;
+	}
+
+	void print_incr(node<T> *parent) {
+		if(!parent) return;
+
+		print_incr(parent->left);
+		std::cout <<parent->data<< " ";
+
+		print_incr(parent->right);
+	}
+
+	void delete_tree(node<T> *parent) {
+		if(!parent) return;
+
+		delete_tree(parent->left);
+		node<T> *next_right = parent->right;
+		delete parent;
+
+		delete_tree(next_right);
+	}
+
+public:
+	perfectly_balanced_tree() : root(nullptr), index(0) {}
+	~perfectly_balanced_tree() {
+		delete_tree(root);
+	}
+
+	void create() {
+
+		get_data();
+		u32 size = datas.size();
+		create_tree(&root, size);
+	}
+
+	void get_data() {
+		std::ifstream fin;
+ 
+		fin.open ("get_datas.txt", std::ifstream::in);
+
+		if (fin.is_open())
+			std::cout <<"open" << std::endl;
+		while(!fin.eof()) {
+			T value;
+			fin >> value;
+			datas.push_back((T)value);
+		}
+		
+		fin.close();
+	}
+
+	void print_incr() {
+		print_incr(root);
+	}
+};
+
+template<typename T>
+void create_left_mirrored_leafes(node<T> *old_val, node<T> **new_root) {
+	if(!old_val) return;
+
+	node<T> *new_tr = *new_root;
+	new_tr = new node<T>{old_val->data, nullptr, nullptr};
+
+	create_left_mirrored_leafes(old_val->right, &new_tr->left);
+	create_left_mirrored_leafes(old_val->left, &new_tr->right);
+
+	*new_root = new_tr;
+}
+
+template<typename T>
+binary_tree<T> *create_mirror_copy(binary_tree<T> *tr) {
+	binary_tree<T> *new_tree = new binary_tree<T>();
+
+	new_tree->create_root(tr->get_root()->data);
+
+ 	create_left_mirrored_leafes(tr->get_root()->right, &new_tree->get_root()->left);
+	create_left_mirrored_leafes(tr->get_root()->left, &new_tree->get_root()->right);
+
+	return new_tree;
+}
+
+int main()
+{
+	u32 size = 15;
+	binary_tree<int> *tree = new binary_tree<int>();
+	tree->create_tree(size);
+	//tree->create_tree();
+	//tree->print_tree();
+	//tree->print_all_leafs();
+	//std::cout << "new mirror tree " << std::endl;
+	//binary_tree<int> *m_tree = create_mirror_copy(tree);
+	//m_tree->print_all_leafs();
+	//tree->print_tree_decreasingly();
+	//tree->print_tree_increasingly();
+	tree->delete_node(25);
+	//tree->find_level_with_max_sum();
+	//m_tree->find_level_with_max_sum();
+
+	//std::cout << "is search tree " << (m_tree->is_search_tree() ? "yes" : "no") << std::endl;
+
+	//tree->count_nodes_on_level();
+
+	//tree->change_datas_in_left_subtrees();
+	//tree->print_all_leafs();
+	//
+	//
+	//u32 result = tree->find_data_level(18);
+	//if(result == u32(-1))
+	//	std::cout << "no data found" <<std::endl;
+	//else
+	//	std::cout << "data " << result << std::endl;
+	//
+	//tree->double_max_double_min();
+	//tree->print_tree();
+
+	tree->print_incrementingly();
+
+	delete tree;
+
+	perfectly_balanced_tree<int> *p_tree = new perfectly_balanced_tree<int>();
+
+	p_tree->create();
+	p_tree->print_incr();
+
+	delete p_tree;
+	//delete m_tree;
+
+	//binary_tree<std::string> *tree = new binary_tree<std::string>();
+
+	//tree->add_root("Nataliia");
+	//tree->add_parent("Nataliia", "Sergey", "Olga");
+	//tree->add_parent("Sergey", "Vladimir", "Galina");
+	//tree->add_parent("Vladimir", "Sergey", "Maria");
+	//tree->add_parent("Olga", "Stepan", "Tamara");
+	//tree->add_parent("Galina", "Ivan", "Maria");
+	//tree->add_parent("Tamara", "Nikolay", "Anna");
+	//tree->add_parent("Anna", "Ihor", "Valentina");
+	//tree->add_parent("Valentina", "Andrew", "Julia");
+
+	//tree->print_all_mothers();
+	//tree->print_all_fathers();
+
+	//delete tree;
+
+	system("pause");
+
+    return 0;
+}

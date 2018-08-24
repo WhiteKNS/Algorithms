@@ -1,0 +1,95 @@
+#include "stdafx.h"
+#include <iostream>
+
+typedef unsigned int u32;
+
+template<class T>
+void swap(T arr[], const u32 first_el, const u32 second_el)
+{
+	T temp = arr[first_el];
+	arr[first_el] = arr[second_el];
+	arr[second_el] = temp;
+}
+
+template<class T>
+int partition(T arr[], const int low, const int high)
+{
+	T pivot = arr[high];
+
+	int w = low - 1; // wall
+
+	for (int i = low; i < high; ++i) {
+		if (arr[i] < pivot) {
+			swap(arr, i, ++w);
+		}
+	}
+
+	swap(arr, high, w + 1);
+
+	return w + 1;
+}
+
+template<class T>
+int partition_good(T arr[], const int low, const int high)
+{
+	int center = (high - low) / 2 + low;
+	T pivot = arr[center];
+
+	int wall_low = low;
+	int wall_high = high;
+
+	 do {
+		while (arr[wall_low] < pivot) ++wall_low;
+		while (arr[wall_high] > pivot) --wall_high;
+
+		swap(arr, wall_low, wall_high);
+
+	} while (wall_low < wall_high);
+
+	return wall_low;
+}
+
+template<class T>
+void quick_sort(T arr[], const int low, const int high)
+{
+	if (low < high) {
+		int p = partition(arr, low, high);
+		quick_sort(arr, low, p - 1);
+		quick_sort(arr, p + 1, high);
+	}
+}
+
+int main()
+{
+	const u32 array_size = 7;
+	int *sorting_array = new int[array_size] { 2, 3, 1, 5, 6, 4, 0};
+	quick_sort(sorting_array, 0, array_size - 1);
+
+	for (u32 i = 0; i < array_size; ++i)
+		std::cout << sorting_array[i];
+
+	delete[] sorting_array;
+
+	system("pause");
+	return 0;
+}
+
+
+Посмотри видео!
+https://www.youtube.com/watch?v=aQiWF4E8flQ
+Выбираем опорный элемент (pivot). Сравниваем элементы с опорным элементом. Если сравниваемый элемент меньше - меняем сравниваемый элемент со "стеной", стену сдвигаем на 1.
+В конце обязательно нужно поменять местами swap(arr, high, w + 1);
+это значит, что мы меняем местами "стену" и опорный элемент.
+Таким образом все, что находится левее опорного элемента- меньше пивота, справа - больше. И неважно, что элементы справа и слва неотсортированы! Важно только, что они больше или меньше опорного элемента!
+
+Now if you pick the worst pivot each time (the highest or lowest element in the list) you'll only have one group to sort, with everything in that group other than the original pivot that you picked. This in essence gives you n groups that each need to be iterated through n times, hence the O(n^2) complexity.
+The most common reason for this occurring is if the pivot is chosen to be the first or last element in the list in the quicksort implementation
+
+сложность алгоритма - худший случай O(n^2)
+
+лучший случай - - O(n*logn)
+потому что мы проходим по всем половинкам массива(n), и делаем это logn раз(на каждом шаге сокращаем массив в 2 раза)
+
+
+partition_good - реализация с пивотом посередине.
+эта реализация лучше.

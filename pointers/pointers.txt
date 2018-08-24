@@ -1,0 +1,426 @@
+// pointers.cpp : Defines the entry point for the console application.
+//
+
+#include "stdafx.h"
+#include <assert.h>
+#include <iostream>
+
+typedef unsigned int u32;
+typedef int s32;
+
+template<typename T>
+T *make_array(const u32 size) {
+	T *array_s = new T[size];
+	for (u32 i = 0; i < size; ++i)
+		array_s[i] = (T)i;
+
+	return array_s;
+}
+
+template<typename T>
+void delete_array(T *arr, const u32 size) {
+	delete[] arr;
+}
+
+template<typename T>
+void print_array(T *arr, const u32 size) {
+	for (u32 i = 0; i < size; ++i)
+		std::cout << arr[i] << " ";
+
+	std::cout << std::endl;
+}
+
+template<typename T>
+void print_array_from_to(T *arr, const u32 size, const u32 min, const u32 max) {
+	assert(max < size);
+
+	for (u32 i = min; i <= max; ++i)
+		std::cout << arr[i] << " ";
+
+	std::cout << std::endl;
+}
+
+template<typename T>
+void delete_zero_elements_shift_left(T **arr_main, u32 &size) {
+	T *arr = *arr_main;
+
+	for (u32 i = 0; i < size; ++i) {
+		if (arr[i] != 0) continue;
+
+		memmove(arr + i, arr + i + 1, (size - (i + 1)) * sizeof(T));
+		realloc(arr, --size * sizeof(T));
+	}
+
+	*arr_main = arr;
+}
+
+template<typename T>
+void delete_zero_elements_shift_right(T **arr_main, u32 &size) {
+	T *arr = *arr_main;
+	
+	u32 new_size = size;
+
+	for (u32 i = 0; i < size; ++i) {
+		if (arr[i] != 0) continue;
+		--new_size;
+	}
+
+	T *new_arr = new T[new_size];
+
+	for (s32 i = size - 1, j = new_size - 1; i >= 0; --i) {
+		if (arr[i] == 0) continue;
+
+		new_arr[j--] = arr[i];
+	}
+
+	delete[] arr;
+	size = new_size;
+
+	*arr_main = new_arr;
+}
+
+template<typename T>
+void delete_all_third_elements(T **arr_main, u32 &size) {
+	T *arr = *arr_main;
+	u32 new_size = size;
+
+	for (u32 i = 0; i < size; ++i) {
+		if (i % 3 - 2 != 0) continue;
+
+		memmove(arr + i, arr + i + 1, (size - (i + 1)) * sizeof(*arr));
+		realloc(arr, --new_size * sizeof(T));
+	}
+
+	size = new_size;
+	*arr_main = arr;
+}
+
+template<typename T>
+void delete_min_and_shift(T **arr_main, u32 &size) {
+	T *arr = *arr_main;
+	T min = (T)(INT_MAX);
+	u32 min_idx = 0;
+
+	for (u32 i = 0; i < size; ++i) {
+		if (arr[i] < min) {
+			min = arr[i];
+			min_idx = i;
+		}
+	}
+
+	if ((min_idx + 1) < size) {
+		memmove(arr + min_idx, arr + min_idx + 1, (size - (min_idx + 1)) * sizeof(*arr));
+		realloc(arr, --size * sizeof(T));
+	}
+
+	*arr_main = arr;
+}
+
+template<typename T>
+void swap_half(T **arr_main, const u32 size) {
+	T *arr = *arr_main;
+
+	u32 middle = size >> 1;
+
+	for (u32 i = 0, j = middle - 1; i < j; ++i, --j)
+		std::swap(arr[i], arr[j]);
+
+	if (size % 2 != 0)
+		middle += 1;
+
+	for (u32 i = middle, j = size - 1; i < j; ++i, --j)
+		std::swap(arr[i], arr[j]);
+
+	*arr_main = arr;
+}
+
+template<typename T>
+void most_greater_sequence(T **arr_main, const u32 size) {
+	T *arr = *arr_main;
+	u32 idx_min = 0;
+	u32 idx_max = 0;
+
+	bool sequence = false;
+	u32 cur_idx_min = 0;
+	u32 cur_idx_max = size - 1;
+
+	for (u32 i = 0; i < (size - 1); ++i) {
+		if (arr[i] < arr[i + 1]) {
+			if (!sequence) {
+				cur_idx_min = i;
+				sequence = true;
+			}
+		}
+		else {
+			cur_idx_max = i;
+
+			if (sequence && (cur_idx_max - cur_idx_min) >= (idx_max - idx_min)) {
+				idx_max = cur_idx_max;
+				idx_min = cur_idx_min;
+			}
+
+			sequence = false;
+
+		}
+	}
+
+	if (idx_max == 0)
+		idx_max = cur_idx_max;
+	print_array_from_to(arr, size, idx_min, idx_max);
+
+	*arr_main = arr;
+}
+
+template<typename T>
+void delete_from_k_to_n(T **main_arr, u32 &size, const u32 k, const u32 n) {
+	T *arr = *main_arr;
+
+	//assert(k * n < size);
+
+	u32 j = 0;
+	for(u32 i = 0; i < size; ++i) {
+		if (i >= k && i <= n/*k*n*/)
+			continue;
+
+		arr[j++] = arr[i];
+	}
+
+	size = j;
+
+	*main_arr = arr;
+}
+
+template<typename T>
+void add_to_ood_zero_value(T **main_arr, u32 &size) {
+	T *arr = *main_arr;
+
+	u32 odd_size = 0;
+	for(u32 i = 0; i < size; ++i) {
+		if(arr[i] % 2 == 0)
+			++odd_size;
+	}
+
+	u32 new_size = size + odd_size;
+	T *new_arr = new T[new_size];
+
+	for(u32 i = 0, j = 0; i < size; ++ i) {
+		if (arr[i] % 2 == 0)
+			new_arr[j++] = 0;
+
+		new_arr[j++] = arr[i];
+	}
+
+	size = new_size;
+
+	delete[] arr;
+
+	*main_arr = new_arr;
+}
+
+template<typename T>
+void swap_pairs(T **main_arr, const u32 size) {
+	T *arr = *main_arr;
+
+	for(u32 i = 0; i < size; i += 4) {
+		for (u32 j = i, c = 0; c < 2 && (j + 2) < size; ++c, ++j) {
+			std::swap(arr[j], arr[j + 2]);
+		}
+	}
+
+	*main_arr = arr;
+}
+
+template<typename T>
+void swap_four_pairs(T **main_arr, const u32 size) {
+	T *arr = *main_arr;
+
+	for(u32 i = 0; i < size; i += 8) {
+		for(u32 j = i, c = 0; (j + 4)< size && c < 4; ++j, ++c)
+			std::swap(arr[j], arr[j + 4]);
+	}
+
+	*main_arr = arr;
+}
+
+template<typename T>
+void swap_third_pairs(T **main_arr, const u32 size) {
+	T *arr = *main_arr;
+
+	for (u32 i = 0, j = i + 2; j < size; i += 3, j += 3)
+		std::swap(arr[i], arr[j]);
+
+	*main_arr = arr;
+}
+
+template<typename T>
+void shift_left_every_five_element(T **main_arr, const u32 size) {
+	T *arr = *main_arr;
+
+	for (u32 i = 0; i < size; i+=5) {
+		const T temp = arr[i];
+
+		u32 j = i;
+		for (u32 c = 0; c < 4 && j < size - 1; ++c, ++j)
+			arr[j] = arr[j + 1];
+
+		arr[j] = temp;
+	}
+
+	*main_arr = arr;
+}
+
+template<typename T>
+void delete_max_el_and_set_zero_to_first(T **main_arr, const u32 size) {
+	T *arr = *main_arr;
+
+	u32 max_index = 0;
+
+	for (u32 i = 0; i < size; ++i) {
+		if (arr[max_index] < arr[i]) {
+			max_index = i;
+		}
+	}
+
+	for (u32 i = max_index; i > 0; --i)
+		arr[i] = arr[i - 1];
+
+	arr[0] = 0;
+
+	*main_arr = arr;
+}
+
+template<typename T>
+void delete_all_zero_and_replace_with_prev_elements(T **main_arr, const u32 size) {
+	T *arr = *main_arr;
+
+	for (u32 i = 0; i < size; ++i) {
+		if (arr[i] == 0) {
+			for (u32 j = i; j > 0; --j)
+				arr[j] = arr[j - 1];
+		}
+	}
+
+	*main_arr = arr;
+}
+
+template<typename T>
+void add_to_middle_array_four_zeros(T **main_arr, const u32 size) {
+	T *arr = *main_arr;
+
+	const u32 middle = size >> 1;
+
+	for (u32 i = 0; i < middle - 1; ++i) {
+		arr[i] = arr[i + 2];
+	}
+
+	for (u32 i = size - 1; i > middle + 1; --i) {
+		arr[i] = arr[i - 2];
+	}
+
+	for (u32 i = middle - 2; i < (middle - 2 + 4); ++i) {
+		arr[i] = 0;
+	}
+	*main_arr = arr;
+}
+
+template<typename T>
+void delete_min_el_and_neighbours_shift_arr_right(T **main_arr, u32 &size) {
+	T *arr = *main_arr;
+
+	u32 min_idx = 0;
+
+	for (u32 i = 0; i < size; ++i) {
+		if (arr[min_idx] < arr[i])
+			min_idx = i;
+	}
+
+	for (u32 i = min_idx + 1; i > 2; --i) {
+		if (i == size) continue;
+
+		arr[i] = arr[i - 3];
+		//memmove(arr + i, arr + (i - 2), (size - (i - 2)) * sizeof(*arr));
+		//realloc(arr, size * sizeof(T));
+	}
+
+	//memmove(arr + min_idx, arr + min_idx + 1, (size - (min_idx + 1)) * sizeof(*arr));
+
+	for (s32 i = (s32)min_idx + 1; i >= (s32)min_idx - 1; --i) {
+		if (i == size || i < 0) continue;
+
+		realloc(arr, --size * sizeof(T));
+	}
+		
+
+	*main_arr = arr;
+}
+
+int main()
+{
+	u32 size = 20;
+
+	int *ar = make_array<int>(size);
+	print_array(ar, size);
+
+	most_greater_sequence(&ar, size);
+
+	//delete_zero_elements_shift_right(&ar, size);
+	//print_array(ar, size);
+
+	delete_zero_elements_shift_left(&ar, size);
+	print_array(ar, size);
+
+	swap_half(&ar, size);
+	print_array(ar, size);
+
+	most_greater_sequence(&ar, size);
+	print_array(ar, size);
+
+	add_to_ood_zero_value(&ar, size);
+	print_array(ar, size);
+
+	swap_pairs(&ar, size);
+	print_array(ar, size);
+
+	swap_four_pairs(&ar, size);
+	print_array(ar, size);
+
+	swap_third_pairs(&ar, size);
+	print_array(ar, size);
+
+	shift_left_every_five_element(&ar, size);
+	print_array(ar, size);
+
+	delete_max_el_and_set_zero_to_first(&ar, size);
+	print_array(ar, size);
+
+	delete_all_zero_and_replace_with_prev_elements(&ar, size);
+	print_array(ar, size);
+
+	add_to_middle_array_four_zeros(&ar, size);
+	print_array(ar, size);
+
+	delete_min_el_and_neighbours_shift_arr_right(&ar, size);
+	print_array(ar, size);
+
+	delete_zero_elements_shift_right(&ar, size);
+	print_array(ar, size);
+
+	//delete_from_k_to_n(&ar, size, 2, 5);
+	//print_array(ar, size);
+	//delete_all_third_elements(&ar, size);
+	//print_array(ar, size);
+	//
+	//delete_min_and_shift(&ar, size);
+	//print_array(ar, size);
+
+	swap_half(&ar, size);
+	print_array(ar, size);
+	//delete ar;
+	//delete_array(ar, size);
+
+
+	system("pause");
+
+	return 0;
+}
+

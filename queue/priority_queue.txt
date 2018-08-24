@@ -1,0 +1,120 @@
+// PriorityQueue.cpp : Defines the entry point for the console application.
+//
+
+#include "stdafx.h"
+#include <iostream>
+
+typedef unsigned int u32;
+
+template <typename T>
+struct node {
+	T data;
+	node *next;
+
+	u32 priority;
+};
+
+template <typename T>
+class priority_queue {
+	node<T> *head;
+	u32 count;
+
+public:
+	priority_queue() : head(nullptr), count(0) {}
+
+	virtual ~priority_queue() {
+		while (head) {
+			node<T> *cashe = head->next;
+			delete head;
+			head = cashe;
+		}
+	}
+
+	void push(const T &data, const u32 priority) {
+		node <T> *cur = head;
+		node<T> *prev = nullptr;
+
+		while (cur) {
+			if (cur->priority > priority)
+				break;
+
+			prev = cur;
+			cur = cur->next;
+		}
+
+		node<T> *new_node = new node<T>{ data, cur, priority };
+
+		if (!head || head == cur)
+			head = new_node;
+
+		if (prev)
+			prev->next = new_node;
+
+		++count;
+	}
+
+	T pop() {
+		if (is_empty()) return (T)(INT_MIN);
+
+		node <T> *cashe = head->next;
+		T data = head->data;
+
+		delete(head);
+		head = cashe;
+
+		--count;
+		return data;
+	}
+
+	T top() { return head ? head->data : (T)(INT_MIN); }
+	node<T> *get_head() { return head ? head : nullptr; }
+	bool is_empty() { return !count; }
+};
+
+template<typename T>
+priority_queue<T> *make_priority_queue(const u32 size) {
+	priority_queue<T> *pr = new priority_queue<T>();
+	for (u32 i = 0; i < size; ++i)
+		pr->push((T)i, rand() % 10 + 1); // from 1 to 10 inclusively
+
+	return pr;
+}
+
+template<typename T>
+void pop_all_elements(priority_queue<T> **pr, const u32 size) {
+	priority_queue<T> *p = *pr;
+	for (u32 i = 0; i <= size; ++i)
+		std::cout << p->pop() << " ";
+}
+
+template<typename T>
+void print_priority_queue(priority_queue<T> **queue) {
+	priority_queue<T> *pr = *queue;
+	node<T> *head = pr->get_head();
+
+	while (head) {
+		std::cout << "data " << head->data << " priority " << head->priority << std::endl;
+		head = head->next;
+	}
+
+	std::cout << std::endl;
+}
+
+int main()
+{
+	const u32 size = 10;
+	priority_queue<int> *pr = make_priority_queue<int>(size);
+	print_priority_queue(&pr);
+
+	pr->pop();
+	print_priority_queue(&pr);
+
+	pop_all_elements(&pr, size);
+	print_priority_queue(&pr);
+
+	delete pr;
+
+	system("pause");
+    return 0;
+}
+

@@ -1,0 +1,47 @@
+#include "stdafx.h"
+#include <iostream>
+
+typedef unsigned int u32;
+
+void shell_sort(int arr[], const u32 size)
+{
+	for (int n = size / 2; n > 0; n /= 2) {
+		for (u32 i = n; i < size; ++i) {
+			for (int j = size - 1; (j - n) >= 0; --j) {
+				if (arr[j] < arr[j - n]) {
+					int temp = arr[j];
+					arr[j] = arr[j - n];
+					arr[j - n] = temp;
+				}
+			}
+		}
+	}
+}
+
+int main()
+{
+	const u32 array_size = 7;
+	int *sorting_array = new int[array_size] { 2, 3, 1, 5, 6, 4, 0};
+	shell_sort(sorting_array, array_size);
+
+	for (u32 i = 0; i < array_size; ++i)
+		std::cout << sorting_array[i];
+
+	delete[] sorting_array;
+
+	system("pause");
+	return 0;
+}
+
+усовершенствованный алгоритм вставками.
+создаем шаг. В данном случае - size / 2, сортируем по шагу , т.е. массив с индексами например 0 и 4, 1 и 5, 2 и 6, 3 и 7
+на следующем шаге уменьшаем шаг в 2 раза,
+и так, пока не дойдем по шага == 1.
+при шаге == 1 сортировка гелла превращается в обычную сортировку вставками.
+
+сложностьь алгоритма:
+на каждом шаге мы увеличиваем количество проверяемых элементов. Если количество начальное элементов == 8, то шаг будет равным 4, следующий 2м, дальше - 1.
+т.е. 1, 2, 4, 8 = 1, 2^1, 2^1, 2^3 - это logn
+O(nlogn) лучший случай
+
+худший случай - O(n^2)

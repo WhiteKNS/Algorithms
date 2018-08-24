@@ -1,0 +1,55 @@
+#include <string.h>
+#include <iostream>
+
+/* Function to swap values at two pointers */
+void swap(char *x, char *y)
+{
+    char temp;
+    temp = *x;
+    *x = *y;
+    *y = temp;
+}
+
+void permute(char *a, int l, int r)
+{
+   int i;
+   if (l == r)
+     std::cout << a << std::endl;
+   else
+   {
+       for (i = l; i <= r; i++)
+       {
+          swap((a+l), (a+i));
+          permute(a, l+1, r);
+          swap((a+l), (a+i)); //backtrack
+       }
+   }
+}
+
+int main()
+{
+    char str[] = "ABC";
+    int n = strlen(str);
+    permute(str, 0, n-1);
+
+	system("pause");
+    return 0;
+}
+
+
+
+https://www.geeksforgeeks.org/write-a-c-program-to-print-all-permutations-of-a-given-string/
+
+количество действий - количество элементов!(факториал)
+
+ABC - 1 * 2 * 3;
+ABCD - 1 * 2 * 3 * 4;
+и тд
+берем 1й элемент , закрепляем его, и permute оставишиеся.
+В функцию permute передается всегда 2 элемента - с чего начинаем, и чем заканчиваем.
+
+мешаем элементы кроме 1го
+
+
+сложность алгоритма - n! (количество перестановок) * n^r(n в степени r).
+O(n^r * n!)

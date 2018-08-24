@@ -1,0 +1,50 @@
+https://www.youtube.com/watch?v=8Y89DRq9Y3o
+
+typedef unsigned int u32;
+
+void selection_sort(int arr[], u32 size)
+{
+	for (u32 i = 0; i < size; ++i) {
+		if (i + 1 == size)
+			break;
+
+		u32 min = i;
+
+		for (u32 j = i + 1; j < size; ++j) {
+			if (arr[j] < arr[min])
+				min = j;
+		}
+
+		if (min == i) continue;
+
+		int temp = arr[i];
+		arr[i] = arr[min];
+		arr[min] = temp;
+	}
+}
+
+int main()
+{
+	u32 array_size	= 7;
+	int *sorting_array = new int[array_size] { 2, 3, 1, 5, 0, 4, 6};
+	selection_sort(sorting_array, array_size);
+
+	for (u32 i = 0; i < array_size; ++i)
+		std::cout << sorting_array[i];
+
+	delete[] sorting_array;
+    return 0;
+}
+
+посмотри видео!
+
+1. выбираем самый маленький элемент из массива - ставим его на 1е место
+2. переходим ко второму элементу - выбираем самый маленький элемент из (от 2 до size), ставим его на второе место
+3. переходим к третьему элементу - выбираем самый маленький элемент из (от 3 до size), ставим его на третье место
+и тд
+
+сложность алгоритма:
+O(n^2) - худший случай
+O(n^2) - лучший случай
+
+потому что в любом случае мы дважды проходим по вложенному циклу, даже если список полностью отсортирован!

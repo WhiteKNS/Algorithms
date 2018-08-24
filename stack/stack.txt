@@ -1,0 +1,165 @@
+// StackTestsLabs.cpp : Defines the entry point for the console application.
+//
+
+#include "stdafx.h"
+#include <iostream>
+
+template <typename T>
+struct node {
+	T data;
+	node *next;
+};
+
+template <typename T>
+struct stack {
+private:
+	int count;
+	node<T> *_stack;
+public:
+	stack() : count(0), _stack(nullptr) {}
+	~stack() {
+		while (_stack) {
+			node<T> *cashe = _stack->next;
+			delete _stack;
+			_stack = cashe;
+		}
+	}
+
+	T pop() {
+		if (is_empty()) return (T)(INT_MIN);
+
+		node<T> *cashe = _stack;
+		T data = cashe->data;
+		_stack = cashe->next;
+
+		delete(cashe);
+		--count;
+		return data;
+	}
+
+	void push(T data) {
+		_stack = new node<T>{ data, _stack };
+
+		++count;
+	}
+
+	T top() {
+		if (is_empty()) return (T)(INT_MIN);
+		return  _stack->data;
+	}
+
+	int size() { return count; }
+
+	bool is_empty() { return !count;  }
+
+	node<T> *head() { return _stack;  }
+};
+
+template <typename T>
+stack<T> *make_stack(const unsigned int size ) {
+	stack<T> *new_stack = new stack<T>();
+	for (unsigned int i = 0; i < size; ++i) {
+		new_stack->push((T)(i + 65));
+	}
+
+	return new_stack;
+}
+
+template <typename T>
+T el_sum(stack<T> **st) {
+	stack<T> *s = *st;
+
+	node<T> *head = s->head();
+	T sum = 0;
+
+	while (head) {
+		if (head->data < 5) {
+			sum += head->data;
+		}
+		head = head->next;
+	}
+
+	return sum;
+}
+
+template <typename T>
+void find_max_and_min(stack<T> **st) {
+	stack<T> *s = *st;
+
+	node<T> *head = s->head();
+	T max = (T)(INT_MIN);
+	T min = (T)(INT_MAX);
+	T st_size = -1;
+	T max_number = -1;
+	T min_number = -1;
+
+	while (head) {
+		++st_size;
+		if (head->data > max) {
+			max = head->data;
+			max_number = st_size;
+		}
+		if (head->data < min) {
+			min = head->data;
+			min_number = st_size;
+		}
+		head = head->next;
+	}
+
+	std::cout << "max data is " << max << " ins_number is " << max_number << std::endl;
+	std::cout << "min data is " << min << " ins_number is " << min_number << std::endl;
+}
+
+template<typename T>
+void greater_number_or_chairs(stack<T> **st) {
+	stack<T> *s = *st;
+	node<T> *head = s->head();
+
+	int number_count = 0;
+	int char_count = 0;
+
+	while (head) {
+		if ((int)head->data >= 0 && (int)head->data <= 9)
+			++number_count;
+		else if ((int)head->data >= 65 && (int)head->data <= 90)
+			++char_count;
+
+		head = head->next;
+	}
+
+	std::cout << "number_count " << number_count << " char_count " << char_count<< std::endl;
+}
+
+template<typename T>
+void delete_stack(stack<T> **st) {
+	delete *st;
+	*st = nullptr;
+}
+
+int main()
+{
+	const unsigned int size = 10;
+	stack<int> *st = make_stack<int>(size);
+	std::cout << "size " << st->size() << std::endl;
+
+	std::cout << "top " << st->top() << std::endl;
+
+	std::cout << "sum " << el_sum(&st) << std::endl;
+
+	find_max_and_min(&st);
+
+	while (!st->is_empty()) {
+		st->pop();
+	}
+
+	stack<char> *st_char = make_stack<char>(size);
+	greater_number_or_chairs(&st_char);
+
+	std::cout << "size " << st->size() << std::endl;
+
+	delete_stack(&st);
+	delete_stack(&st_char);
+	system("pause");
+    return 0;
+}
+

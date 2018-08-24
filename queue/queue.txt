@@ -1,0 +1,114 @@
+// QueueLinkedList.cpp : Defines the entry point for the console application.
+//
+
+#include "stdafx.h"
+#include <iostream>
+
+typedef unsigned int u32;
+
+template<typename T> 
+struct node {
+	T data;
+	node *next;
+};
+
+template<typename T>
+class Queue {
+	node<T> *first;
+	node<T> *last;
+
+	unsigned int count;
+
+public:
+	Queue() : first(nullptr), last(nullptr), count(0) {}
+	~Queue() {
+		while (head) {
+			node<T> *cashe = head->next;
+			delete head;
+			head = cashe;
+		}
+
+		first = nullptr;
+		last = nullptr;
+	}
+
+	void push (const T &data) {
+		node<T> *new_node = new node<T>{ data, nullptr };
+		
+		if (last) {
+			last->next = new_node;
+			last = last->next;
+		} else {
+			last = new_node;
+		}
+
+		if (!first)
+			first = new_node;
+
+		++count;
+	}
+
+	T pop() {
+		if (is_empty()) return (T)(INT_MIN);
+
+		node<T> *cashe = first->next;
+		T data = first->data;
+		delete first;
+
+		first = cashe;
+		--count;
+
+		return data;
+	}
+
+	const bool is_empty() const { return !count; }
+
+	const u32 size() const { return count; }
+
+	const node<T> *head() const { return first; }
+
+	const node<T> *tail() const { return last; }
+};
+
+template<typename T>
+Queue<T> *make_queue(const u32 size) {
+	Queue<T> *q = new Queue<T>();
+
+	for (u32 i = 0; i < size; ++i)
+		q->push((T)i);
+
+	return q;
+}
+
+
+template<typename T>
+void print_queue(Queue<T> **que) {
+	Queue<T> *q = *que;
+	const node<T> *head = q->head();
+
+	while (head) {
+		std::cout << "head " << head->data << " ";
+		head = head->next;
+	}
+
+	std::cout << std::endl;
+}
+
+int main()
+{
+	const u32 size = 10;
+	Queue<int> *que = make_queue<int>(size);
+	print_queue(&que);
+
+	que->pop();
+	print_queue(&que);
+
+	que->push(11);
+	std::cout << "tail " << que->tail() << std::endl;
+	std::cout << "tail " << que->tail()->data << std::endl;
+
+	system("pause");
+
+    return 0;
+}
+
