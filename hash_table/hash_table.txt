@@ -1,35 +1,35 @@
- hash_table.cpp  Defines the entry point for the console application.
+// hash_table.cpp : Defines the entry point for the console application.
+//
 
-
-#include stdafx.h
-#include iostream
+#include "stdafx.h"
+#include <iostream>
 
 typedef unsigned int u32;
 
-template <typename V>
+template<typename V>
 struct node {
 	V value;
-	node next;
+	node *next;
 };
 
-template <typename V>
+template<typename V>
 class hash_table {
 #define MAX_SIZE 100
-	nodeV table[MAX_SIZE];
+	node<V> *table[MAX_SIZE];
 	u32 size;
 
-public
-	hash_table(const u32 s)  size(s) {
-		for (u32 i = 0; i  size; ++i)
+public:
+	hash_table(const u32 s) : size(s) {
+		for (u32 i = 0; i < size; ++i)
 			table[i] = nullptr;
 	}
 
 	~hash_table() {
-		for (u32 i = 0; i  size; ++i) {
-			nodeV cur = table[i];
+		for (u32 i = 0; i < size; ++i) {
+			node<V> *cur = table[i];
 
 			while(cur) {
-				nodeV cashe = cur-next;
+				node<V> *cashe = cur->next;
 
 				delete cur;
 				cur = cashe;
@@ -43,15 +43,15 @@ public
 			return;
 
 		if (!table[k]) {
-			table[k] = new nodeV{v, nullptr};
+			table[k] = new node<V>{v, nullptr};
 		} else {
-			node V cur = table[k];
+			node <V> *cur = table[k];
 
-			while(cur-next)
-				cur = cur-next;
+			while(cur->next)
+				cur = cur->next;
 
-			nodeV new_node = new nodeV {v, nullptr};
-			cur-next = new_node;
+			node<V> *new_node = new node<V> {v, nullptr};
+			cur->next = new_node;
 		}
 	}
 
@@ -61,20 +61,20 @@ public
 		if (k == u32(-1))
 			return;
 
-		nodeV cur = table[k];
+		node<V> *cur = table[k];
 
 		if (!cur) return;
 
-		nodeV prev = nullptr;
+		node<V> *prev = nullptr;
 
 		while(cur) {
-			nodeV cashe = cur-next;
+			node<V> *cashe = cur->next;
 
 	
-			if (cur-value == v) {
+			if (cur->value == v) {
 				delete cur;
 				if (prev)
-					prev-next = cashe;
+					prev->next = cashe;
 
 				cur = cashe;
 				break;
@@ -88,51 +88,51 @@ public
 	}
 
 	void print_table() {
-		stdcout  printing...  stdendl;
+		std::cout << "printing..." << std::endl;
 
-		for (u32 i = 0; i  size; ++i) {
+		for (u32 i = 0; i < size; ++i) {
 			if (!table[i]) continue;
 
-			nodeV cur = table[i];
+			node<V> *cur = table[i];
 
-			while(cur-next) {
-				stdcout  cur-value   ;
-				cur = cur-next;
+			while(cur->next) {
+				std::cout << cur->value << " ";
+				cur = cur->next;
 			}
 			
-			stdcout  cur-value  stdendl;
+			std::cout << cur->value << std::endl;
 		}
 	}
 
-private
+private:
 	int key(const V &value) {
 		u32 v = (u32)value;
 		int k = v%size;
-		return k = MAX_SIZE  u32(-1)  k;
+		return k >= MAX_SIZE ? u32(-1) : k;
 	}
 };
 
 int main()
 {
-	hash_tableint hash = new hash_tableint(10);
+	hash_table<int> *hash = new hash_table<int>(10);
 
-	hash-insert_value(3);
-	hash-insert_value(5);
-	hash-insert_value(550);
-	hash-insert_value(13);
+	hash->insert_value(3);
+	hash->insert_value(5);
+	hash->insert_value(550);
+	hash->insert_value(13);
 
-	hash-print_table();
+	hash->print_table();
 
-	hash-delete_item(5);
+	hash->delete_item(5);
 
-	hash-print_table();
+	hash->print_table();
 
-	hash-insert_value(5);
-	hash-print_table();
+	hash->insert_value(5);
+	hash->print_table();
 
 	delete hash;
 
-	system(pause);
+	system("pause");
     return 0;
 }
 
