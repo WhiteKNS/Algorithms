@@ -6,13 +6,13 @@
 
 typedef unsigned int u32;
 
-templatetypename V
+template <typename V>
 struct node {
 	V value;
 	node next;
 };
 
-templatetypename V
+template <typename V>
 class hash_table {
 #define MAX_SIZE 100
 	nodeV table[MAX_SIZE];
